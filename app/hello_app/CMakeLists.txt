@@ -8,6 +8,10 @@
 set(CONTEST2026_148_BOARD_DIR
     ${NUTTX_DIR}/../vendor/openvela/boards/contest2026_148_board)
 
+file(GLOB VELAGUARD_UI_SRCS
+     ui/velaguard_font_30.c
+     ui/velaguard_img_*.c)
+
 # Noise suppression (libspeexdsp preprocess, BSD-3 licensed, vendored under
 # audio/speexdsp).  Enabled by CONFIG_CONTEST2026_148_DENOISE.
 # The speexdsp sources are compiled ONCE into a shared static library that
@@ -94,7 +98,7 @@ if(CONFIG_LVX_USE_DEMO_CONTEST2026_148_VELAGUARD)
     sensors/velaguard_imu.c
     comm/velaguard_ble.c
     ${NUTTX_DIR}/../apps/external/zblue/zblue/port/drivers/bluetooth/hci/h4.c
-    ui/velaguard_font_18.c)
+    ${VELAGUARD_UI_SRCS})
 
   if(CONFIG_CONTEST2026_148_AUDIO_TEST)
     nuttx_add_application(
