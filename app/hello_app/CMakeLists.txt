@@ -8,6 +8,32 @@
 set(CONTEST2026_148_BOARD_DIR
     ${NUTTX_DIR}/../vendor/openvela/boards/contest2026_148_board)
 
+# Noise suppression (libspeexdsp preprocess, BSD-3 licensed, vendored under
+# audio/speexdsp).  Enabled by CONFIG_CONTEST2026_148_DENOISE.
+# The speexdsp sources are compiled ONCE into a shared static library that
+# both the velaguard and audio_test applications link against.
+set(CONTEST2026_148_DENOISE_DEP)
+if(CONFIG_CONTEST2026_148_DENOISE)
+  nuttx_add_library(libvg_speexdsp STATIC)
+  target_sources(libvg_speexdsp PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/audio/vg_denoise.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/audio/speexdsp/preprocess.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/audio/speexdsp/filterbank.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/audio/speexdsp/kiss_fft.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/audio/speexdsp/kiss_fftr.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/audio/speexdsp/fftwrap.c)
+  target_include_directories(libvg_speexdsp PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/audio/speexdsp
+    ${CMAKE_CURRENT_SOURCE_DIR}/audio/speexdsp/include)
+  target_compile_definitions(libvg_speexdsp PRIVATE
+    OUTSIDE_SPEEX
+    FIXED_POINT
+    USE_KISS_FFT
+    RANDOM_PREFIX=nuttx
+    VG_DENOISE_NO_ECHO)
+  set(CONTEST2026_148_DENOISE_DEP libvg_speexdsp)
+endif()
+
 if(CONFIG_LVX_USE_DEMO_CONTEST2026_148_VELAGUARD)
   nuttx_add_application(
     NAME
@@ -20,6 +46,7 @@ if(CONFIG_LVX_USE_DEMO_CONTEST2026_148_VELAGUARD)
     ${CONFIG_LVX_USE_DEMO_CONTEST2026_148_VELAGUARD}
     DEPENDS
     lvgl
+    ${CONTEST2026_148_DENOISE_DEP}
     DEFINITIONS
     SOC_BF0_HCPU
     SF32LB52X
@@ -79,6 +106,8 @@ if(CONFIG_LVX_USE_DEMO_CONTEST2026_148_VELAGUARD)
       16384
       MODULE
       ${CONFIG_CONTEST2026_148_AUDIO_TEST}
+      DEPENDS
+      ${CONTEST2026_148_DENOISE_DEP}
       SRCS
       audio/audio_test.c)
   endif()
